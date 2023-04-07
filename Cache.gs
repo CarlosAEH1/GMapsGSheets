@@ -1,32 +1,35 @@
-function setCache (key, value) {
-  const secsExp = 2 * 60 * 60; // 2 hours
-  CacheService.getDocumentCache().put(md5(key), JSON.stringify(value), secsExp);
-};
+function activarCache(llave, valor)
+{
+  const tiempo=5*60*60  //5 [h]
+  CacheService.getDocumentCache().put(md5(llave), JSON.stringify(valor), tiempo);
 
-function getCache (key) {
-  var value = CacheService.getDocumentCache().get(md5(key));
-  try{
-    return JSON.parse(value)
-  }catch{
-    return null;
-  }
-};
+}
 
-function md5 (key) {
-  const keyLowerClean = key.toLowerCase().replace(/\s/g, "");
-  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, keyLowerClean));
-};
+function obtenerValor(llave)
+{
+  var valor=CacheService.getDocumentCache().get(md5(llave));
+  try{return JSON.parse(valor);}
+  catch{return null;}
+}
 
-function CallWithCache(fn,args){
-  const key = [fn.name].concat(args.map(v=>""+v)).join("|");
-  console.log(`cache key:${key}`);
-  var value = getCache(key);
-  if (value !== null){
+function md5(llave)
+{
+  const llaveMinusculas=llave.toLowerCase().replace(/\s/g, "");
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, llaveMinusculas));
+}
+
+function llamarCache(fn, args)
+{
+  const llave=[fn.name].concat(args.map(v=>""+v)).join("|");
+  console.log(`cache key: ${llave}`);
+  var valor=obtenerValor(llave);
+  if(valor!==null)
+  {
     console.log("cache hit");
-    return value;
+    return valor;
   }
   console.log("cache miss");
-  value = fn(...args);
-  setCache(key, value);
-  return value;
+  valor=fn(...args);
+  activarCache(llave, valor);
+  return valor;
 }
